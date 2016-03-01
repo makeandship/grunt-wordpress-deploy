@@ -147,7 +147,15 @@ exports.init = function (grunt) {
       }
     });
 
-    if (typeof config.ssh_host === "undefined") {
+	if (typeof config.container !== "undefined") {
+      grunt.log.oklns("Creating DUMP of docker container");
+        var tpl_docker = grunt.template.process(tpls.docker, {
+          data: {
+            container: config.container
+          }
+        });
+        cmd = tpl_docker + " 'exec " + cmd + "'";
+    } else if (typeof config.ssh_host === "undefined") {
       grunt.log.oklns("Creating DUMP of local database");
     } else {
       grunt.log.oklns("Creating DUMP of remote database");
@@ -158,7 +166,7 @@ exports.init = function (grunt) {
       });
       cmd = tpl_ssh + " '" + cmd + "'";
     }
-
+	
     return cmd;
   };
 
@@ -173,7 +181,16 @@ exports.init = function (grunt) {
       }
     });
 
-    if (typeof config.ssh_host === "undefined") {
+	if (typeof config.container !== "undefined") {
+      grunt.log.oklns("Importing DUMP to docker container");
+        var tpl_docker = grunt.template.process(tpls.docker, {
+          data: {
+            container: config.container,
+			option: '-i'
+          }
+        });
+		cmd = tpl_docker + " 'exec " + cmd + "' < " + src;
+    } else if (typeof config.ssh_host === "undefined") {
       grunt.log.oklns("Importing DUMP into local database");
       cmd = cmd + " < " + src;
     } else {
@@ -186,7 +203,7 @@ exports.init = function (grunt) {
       grunt.log.oklns("Importing DUMP into remote database");
       cmd = tpl_ssh + " '" + cmd + "' < " + src;
     }
-
+	
     return cmd;
   };
 
@@ -225,6 +242,7 @@ exports.init = function (grunt) {
     rsync_push: "rsync <%= rsync_args %> --delete -e 'ssh <%= ssh_host %>' <%= exclusions %> <%= from %> :<%= to %>",
     rsync_pull: "rsync <%= rsync_args %> -e 'ssh <%= ssh_host %>' <%= exclusions %> :<%= from %> <%= to %>",
     ssh: "ssh <%= host %>",
+	docker: "docker exec <%= option %> <%= container %> bash -c " 
   };
 
   return exports;
