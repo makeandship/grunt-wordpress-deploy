@@ -116,6 +116,10 @@ module.exports = function(grunt) {
       to: target_options.path,
       exclusions: exclusions
     };
+	
+	if (typeof target_options.docker_machine !== "undefined") {
+		config.docker_machine = target_options.docker_machine;
+	}
 
     util.rsync_push(config);
   });

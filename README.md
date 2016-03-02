@@ -68,7 +68,8 @@ module.exports = function(grunt) {
         "url": "http://staging_url",
         "path": "/staging_path",
         "ssh_host": "user@staging_host",
-		"container": "container_name" // if you are using docker
+		"container": "container_name", // if you are using docker
+		"docker_machine": "machine_name" // if you are using docker-machine
       },
       your_environment: {
         ...
