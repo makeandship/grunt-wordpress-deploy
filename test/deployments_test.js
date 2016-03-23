@@ -4,7 +4,7 @@ var util = require('../tasks/lib/util.js').init(grunt);
 
 module.exports = {
   replace_urls: function(test) {
-    test.expect(3);
+    test.expect(5);
 
     var search = 'http://loremipsum';
     var replace = 'http://www.loremipsum.com';
@@ -30,6 +30,23 @@ module.exports = {
     test.equal(
       util.replace_urls(search, replace, string3),
       '{s:19:"payment_success_url";s:52:"http://loremipsum.loremipsum.com/payment-successful/";}http://loremipsum.loremipsum.com/hb',
+      "Replacing a mixed string, serialized or not, with the source url contained into the replace url."
+    );
+
+    search = 'http://loremipsum/website/local';
+    replace = 'http://www.loremipsum.com/target';
+
+    var string4 = "INSERT INTO `wp_blogs` VALUES (1,1,'loremipsum','/website/local/','2015-09-30 11:53:31','2016-03-07 17:23:13',1,0,0,0,0,0),(2,1,'loremipsum','/website/local/another-site/','2015-10-01 12:57:55','2015-10-12 13:01:35',1,0,0,0,1,0)";
+    test.equal(
+      util.replace_urls(search, replace, string4),
+      "INSERT INTO `wp_blogs` VALUES (1,1,'www.loremipsum.com','/target/','2015-09-30 11:53:31','2016-03-07 17:23:13',1,0,0,0,0,0),(2,1,'www.loremipsum.com','/target/another-site/','2015-10-01 12:57:55','2015-10-12 13:01:35',1,0,0,0,1,0)",
+      "Replacing a mixed string, serialized or not, with the source url contained into the replace url."
+    );
+
+    var string5 = "(16,1,'source_domain','loremipsum'),(17,1,'primary_blog','1')";
+    test.equal(
+      util.replace_urls(search, replace, string5),
+      "(16,1,'source_domain','www.loremipsum.com'),(17,1,'primary_blog','1')",
       "Replacing a mixed string, serialized or not, with the source url contained into the replace url."
     );
 
