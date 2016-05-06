@@ -108,6 +108,11 @@ exports.init = function (grunt) {
     var searchPath = searchUrl.pathname;
     var replacePath = replaceUrl.pathname;
 
+    // handle urls with no trailing slash that URL parsing applies
+    if (replacePath === '/' && replace.substr(-1) !== '/') {
+      replacePath = '';
+    }    
+
     content = exports.replace_host_and_path(searchHost, replaceHost, searchPath, replacePath, content);
     content = exports.replace_host(searchHost, replaceHost, content);
 
@@ -131,9 +136,6 @@ exports.init = function (grunt) {
         occurences = target_string.match(search_regexp).length;
         length = matches[1];
         delimiter = matches[2];
-
-        console.log('Delimiter:' + delimiter);
-        console.log('Target: ' + target_string);
 
         // Replace the url
         new_url = target_string.replace(search_regexp, replace);
