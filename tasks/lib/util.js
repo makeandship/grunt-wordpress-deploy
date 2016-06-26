@@ -146,19 +146,46 @@ exports.init = function (grunt) {
         host: config.host
       }
     });
+    
+    if (typeof config.container !== "undefined") {
+      // docker exec wraps the command
+      var tpl_docker = grunt.template.process(tpls.docker, {
+        data: {
+          container: config.container,
+          option: config.container_options
+        }
+      });
+      cmd = tpl_docker + '\'' + cmd + '\'';
+      
+      // ssh wraps docker exec
+      if (typeof config.ssh_host !== 'undefined') {
+        var tpl_ssh = grunt.template.process(tpls.ssh, {
+          data: {
+            host: config.ssh_host,
+            options: config.ssh_options
+          }
+        });
 
-    if (typeof config.ssh_host === "undefined") {
+        cmd = tpl_ssh + ' \'' + cmd.replace(/\'/g, '\'"\'"\'') + '\'';
+        grunt.log.oklns("Creating DUMP of remote database via docker");
+      }
+      else {
+        grunt.log.oklns("Creating DUMP of local docker container");
+      }
+      
+    } else if (typeof config.ssh_host === "undefined") {
       grunt.log.oklns("Creating DUMP of local database");
     } else {
       grunt.log.oklns("Creating DUMP of remote database");
       var tpl_ssh = grunt.template.process(tpls.ssh, {
         data: {
-          host: config.ssh_host
+          host: config.ssh_host,
+          options: config.ssh_options
         }
       });
       cmd = tpl_ssh + " '" + cmd + "'";
     }
-
+    cmd = cmd.replace('  ',' ');
     return cmd;
   };
 
@@ -179,7 +206,8 @@ exports.init = function (grunt) {
     } else {
       var tpl_ssh = grunt.template.process(tpls.ssh, {
         data: {
-          host: config.ssh_host
+          host: config.ssh_host,
+          options: config.ssh_options
         }
       });
 
@@ -187,6 +215,7 @@ exports.init = function (grunt) {
       cmd = tpl_ssh + " '" + cmd + "' < " + src;
     }
 
+    cmd = cmd.replace('  ',' ');
     return cmd;
   };
 
@@ -224,7 +253,11 @@ exports.init = function (grunt) {
     mysql: "mysql -h <%= host %> -u <%= user %> -p<%= pass %> <%= database %>",
     rsync_push: "rsync <%= rsync_args %> --delete -e 'ssh <%= ssh_host %>' <%= exclusions %> <%= from %> :<%= to %>",
     rsync_pull: "rsync <%= rsync_args %> -e 'ssh <%= ssh_host %>' <%= exclusions %> :<%= from %> <%= to %>",
-    ssh: "ssh <%= host %>",
+    ssh: "ssh <%= options%> <%= host %>",
+    docker: "docker exec <%= option %> <%= container %> bash -c ",
+    rsync_docker_push: "rsync <%= rsync_args %> --delete -e 'docker-machine ssh <%= docker_machine %>' --rsync-path='sudo rsync' <%= exclusions %> <%= from %> :<%= to %>",
+    change_owner: "sudo chown -R www-data:www-data <%= path %> ",
+    docker_ssh: "docker-machine ssh <%= docker_machine %> " 
   };
 
   return exports;

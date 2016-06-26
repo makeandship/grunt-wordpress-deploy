@@ -3,6 +3,7 @@ var grunt = require('grunt');
 var util = require('../tasks/lib/util.js').init(grunt);
 
 module.exports = {
+  
   replace_urls: function(test) {
     test.expect(3);
 
@@ -104,7 +105,7 @@ module.exports = {
   },
 
   mysqldump_cmd: function(test) {
-    test.expect(2);
+    test.expect(4);
 
     var config = {
       user: 'john',
@@ -119,8 +120,18 @@ module.exports = {
     config.ssh_host = '127.0.0.1';
 
     var cmd2 = util.mysqldump_cmd(config);
+    console.log(cmd2);
     test.equal(cmd2, "ssh 127.0.0.1 'mysqldump -h localhost -ujohn -ppass test'", 'SSH remote mysqldump command.');
-    test.done();
+    
+    config.ssh_options = '-i ~/.ssh/key.pem';
+    var cmd3 = util.mysqldump_cmd(config);
+    test.equal(cmd3, "ssh -i ~/.ssh/key.pem 127.0.0.1 'mysqldump -h localhost -ujohn -ppass test'", 'SSH remote mysqldump command with options.');
+
+    config.container = 'mariadb';
+    var cmd4 = util.mysqldump_cmd(config);
+    test.equal(cmd4, 'ssh -i ~/.ssh/key.pem 127.0.0.1 \'docker exec mariadb bash -c \'"\'"\'mysqldump -h localhost -ujohn -ppass test\'"\'"\'\'', 'SSH remote mysqldump command with options via docker.');
+
+    test.done();    
   },
 
   mysql_cmd: function(test) {
