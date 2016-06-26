@@ -205,7 +205,7 @@ exports.init = function (grunt) {
       var tpl_docker = grunt.template.process(tpls.docker, {
         data: {
           container: config.container,
-          option: config.container_options
+          option: config.container_options || '-i'
         }
       });
       cmd = tpl_docker + '\'' + cmd + '\'';
