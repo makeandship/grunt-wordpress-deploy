@@ -120,7 +120,6 @@ module.exports = {
     config.ssh_host = '127.0.0.1';
 
     var cmd2 = util.mysqldump_cmd(config);
-    console.log(cmd2);
     test.equal(cmd2, "ssh 127.0.0.1 'mysqldump -h localhost -ujohn -ppass test'", 'SSH remote mysqldump command.');
     
     config.ssh_options = '-i ~/.ssh/key.pem';
@@ -135,7 +134,7 @@ module.exports = {
   },
 
   mysql_cmd: function(test) {
-    test.expect(2);
+    test.expect(4);
 
     var config = {
       host: 'localhost',
@@ -153,6 +152,15 @@ module.exports = {
 
     var cmd2 = util.mysql_cmd(config, src);
     test.equal(cmd2, "ssh 127.0.0.1 'mysql -h localhost -u john -ppass test' < /aaa/bbb", 'Remote Mysql import command.');
+
+    config.ssh_options = '-i ~/.ssh/key.pem';
+    var cmd3 = util.mysql_cmd(config, src);
+    test.equal(cmd3, "ssh -i ~/.ssh/key.pem 127.0.0.1 'mysql -h localhost -u john -ppass test' < /aaa/bbb", 'Remote Mysql import command.');
+
+    config.container = 'mariadb';
+    var cmd4 = util.mysql_cmd(config, src);
+    test.equal(cmd4, "ssh -i ~/.ssh/key.pem 127.0.0.1 \'docker exec mariadb bash -c \'\"\'\"\'mysql -h localhost -u john -ppass test\'\"\'\"\'\' < /aaa/bbb", 'Remote Mysql import command.');
+
     test.done();
   },
 

@@ -200,7 +200,33 @@ exports.init = function (grunt) {
       }
     });
 
-    if (typeof config.ssh_host === "undefined") {
+    if (typeof config.container !== "undefined") {
+      // docker exec wraps the command
+      var tpl_docker = grunt.template.process(tpls.docker, {
+        data: {
+          container: config.container,
+          option: config.container_options
+        }
+      });
+      cmd = tpl_docker + '\'' + cmd + '\'';
+      
+      // ssh wraps docker exec
+      if (typeof config.ssh_host !== 'undefined') {
+        var tpl_ssh = grunt.template.process(tpls.ssh, {
+          data: {
+            host: config.ssh_host,
+            options: config.ssh_options
+          }
+        });
+
+        cmd = tpl_ssh + ' \'' + cmd.replace(/\'/g, '\'"\'"\'') + '\' < ' + src;
+        grunt.log.oklns("Creating DUMP of remote database via docker");
+      }
+      else {
+        grunt.log.oklns("Creating DUMP of local docker container");
+      }
+      
+    } else if (typeof config.ssh_host === "undefined") {
       grunt.log.oklns("Importing DUMP into local database");
       cmd = cmd + " < " + src;
     } else {
