@@ -176,8 +176,9 @@ module.exports = {
 
     config.container = 'mariadb';
     var cmd4 = util.mysql_cmd(config, src);
-    test.equal(cmd4, "ssh -i ~/.ssh/key.pem 127.0.0.1 \'docker exec mariadb bash -c \'\"\'\"\'mysql -h localhost -u john -ppass test\'\"\'\"\'\' < /aaa/bbb", 'Remote Mysql import command.');
 
+    test.equal(cmd4, "ssh -i ~/.ssh/key.pem 127.0.0.1 'docker exec -i mariadb bash -c \'\"\'\"\'mysql -h localhost -u john -ppass test\'\"\'\"\'\' < /aaa/bbb", 'Remote Mysql import command.');
+	
     test.done();
   },
 
