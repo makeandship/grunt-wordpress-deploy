@@ -1,5 +1,7 @@
 'use strict';
 
+var URL = require('url');
+
 exports.init = function (grunt) {
   var shell = require('shelljs');
   var lineReader = require("line-reader");
@@ -92,8 +94,27 @@ exports.init = function (grunt) {
   };
 
   exports.replace_urls = function(search, replace, content) {
-    content = exports.replace_urls_in_serialized(search, replace, content);
-    content = exports.replace_urls_in_string(search, replace, content);
+    content = exports.replace_urls_in_serialized(search, replace, content); 
+    content = exports.replace_urls_in_string(search, replace, content);  
+
+    var searchUrl = URL.parse(search);
+    var replaceUrl = URL.parse(replace);
+
+    // host replace
+    var searchHost = searchUrl.host;
+    var replaceHost = replaceUrl.host;
+
+    // path replace
+    var searchPath = searchUrl.pathname;
+    var replacePath = replaceUrl.pathname;
+
+    // handle urls with no trailing slash that URL parsing applies
+    if (replacePath === '/' && replace.substr(-1) !== '/') {
+      replacePath = '';
+    }    
+
+    content = exports.replace_host_and_path(searchHost, replaceHost, searchPath, replacePath, content);
+    content = exports.replace_host(searchHost, replaceHost, content);
 
     return content;
   };
@@ -129,6 +150,20 @@ exports.init = function (grunt) {
     }
 
     return string;
+  };
+
+  exports.replace_host = function(search, replace, string) {
+    var re = "([\\]*['\"])(" + search + ")\\1";
+    var regexp = new RegExp(re, 'g');
+    
+    return string.replace(regexp, '$1' + replace + '$1');
+  };
+
+  exports.replace_host_and_path = function(searchHost, replaceHost, searchPath, replacePath, string) {
+    var re = "([\\]*['\"])(" + searchHost + ")\\1,\\1(" + searchPath + ")";
+    var regexp = new RegExp(re, 'g');
+    
+    return string.replace(regexp, '$1' + replaceHost + '$1,$1' + replacePath);
   };
 
   exports.replace_urls_in_string = function (search, replace, string) {
