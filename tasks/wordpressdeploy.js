@@ -111,6 +111,7 @@ module.exports = function(grunt) {
 
     var config = {
       rsync_args: task_options.rsync_args.join(' '),
+      ssh_options: target_options.ssh_options,
       ssh_host: target_options.ssh_host,
       from: local_options.path,
       to: target_options.path,
@@ -141,6 +142,7 @@ module.exports = function(grunt) {
 
     var config = {
       rsync_args: rsync_args,
+      ssh_options: target_options.ssh_options,
       ssh_host: target_options.ssh_host,
       from: target_options.path,
       to: local_options.path,

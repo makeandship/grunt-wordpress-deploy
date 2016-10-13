@@ -289,6 +289,7 @@ exports.init = function (grunt) {
     var cmd = grunt.template.process(tpls.rsync_push, {
       data: {
         rsync_args: config.rsync_args,
+        ssh_options: config.ssh_options,
         ssh_host: config.ssh_host,
         from: config.from,
         to: config.to,
@@ -303,6 +304,7 @@ exports.init = function (grunt) {
     var cmd = grunt.template.process(tpls.rsync_pull, {
       data: {
         rsync_args: config.rsync_args,
+        ssh_options: config.ssh_options,
         ssh_host: config.ssh_host,
         from: config.from,
         to: config.to,
@@ -317,8 +319,8 @@ exports.init = function (grunt) {
     backup_path: "<%= backups_dir %>/<%= env %>/<%= date %>/<%= time %>",
     mysqldump: "mysqldump -h <%= host %> -u<%= user %> -p<%= pass %> <%= database %>",
     mysql: "mysql -h <%= host %> -u <%= user %> -p<%= pass %> <%= database %>",
-    rsync_push: "rsync <%= rsync_args %> --delete -e 'ssh <%= ssh_host %>' <%= exclusions %> <%= from %> :<%= to %>",
-    rsync_pull: "rsync <%= rsync_args %> -e 'ssh <%= ssh_host %>' <%= exclusions %> :<%= from %> <%= to %>",
+    rsync_push: "rsync <%= rsync_args %> --delete -e \"ssh <%= ssh_options %> <%= ssh_host %>\" <%= exclusions %> <%= from %> :<%= to %>",
+    rsync_pull: "rsync <%= rsync_args %> -e \"ssh <%= ssh_options %> <%= ssh_host %>\" <%= exclusions %> :<%= from %> <%= to %>",
     ssh: "ssh <%= options%> <%= host %>",
     docker: "docker exec <%= option %> <%= container %> bash -c ",
     rsync_docker_push: "rsync <%= rsync_args %> --delete -e 'docker-machine ssh <%= docker_machine %>' --rsync-path='sudo rsync' <%= exclusions %> <%= from %> :<%= to %>",
