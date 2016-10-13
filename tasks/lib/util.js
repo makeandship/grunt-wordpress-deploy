@@ -113,6 +113,11 @@ exports.init = function (grunt) {
       replacePath = '';
     }    
 
+    // catch trailing slash on one url but not another
+    if (searchPath.endsWith('/') && !replacePath.endsWith('/')) {
+      replacePath = replacePath + '/';
+    }
+
     content = exports.replace_host_and_path(searchHost, replaceHost, searchPath, replacePath, content);
     content = exports.replace_host(searchHost, replaceHost, content);
 

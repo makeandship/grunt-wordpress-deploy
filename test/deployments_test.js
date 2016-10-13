@@ -5,7 +5,7 @@ var util = require('../tasks/lib/util.js').init(grunt);
 module.exports = {
   
   replace_urls: function(test) {
-    test.expect(5);
+    test.expect(6);
 
     var search = 'http://loremipsum';
     var replace = 'http://www.loremipsum.com';
@@ -49,6 +49,16 @@ module.exports = {
       util.replace_urls(search, replace, string5),
       "(16,1,'source_domain','www.loremipsum.com'),(17,1,'primary_blog','1')",
       "Replacing a mixed string, serialized or not, with the source url contained into the replace url."
+    );
+
+    search = 'https://imperial.pocket-doc.net'
+    replace = 'http://telemachus.local/pocket-doc/website'
+
+    var string6 = "'imperial.pocket-doc.net','/stroke-medicine-induction/'";
+    test.equal(
+      util.replace_urls(search, replace, string6),
+      "'telemachus.local','/pocket-doc/website/stroke-medicine-induction/'",
+      "Replacing a no path string with a path-based string"
     );
 
     test.done();
