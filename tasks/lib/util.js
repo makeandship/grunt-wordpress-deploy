@@ -174,6 +174,10 @@ exports.init = function (grunt) {
       }
       
     } else if (typeof config.ssh_host === "undefined") {
+      // suppress the warnings
+      // https://tickets.puppetlabs.com/browse/MODULES-2605
+      cmd = `MYSQL_PWD=${config.pass} `+cmd
+      cmd = cmd.replace(` -p${config.pass} `,' ');
       grunt.log.oklns("Creating DUMP of local database");
     } else {
       grunt.log.oklns("Creating DUMP of remote database");
