@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
-exports.init = function (grunt) {
-  var shell = require('shelljs');
+exports.init = function(grunt) {
+  var shell = require("shelljs");
   var lineReader = require("line-reader");
 
   var exports = {};
@@ -11,10 +11,12 @@ exports.init = function (grunt) {
 
     var cmd = exports.mysqldump_cmd(config);
 
-    var output = shell.exec(cmd, {silent: true}).output;
+    var output = shell.exec(cmd, { silent: true }).output;
 
     grunt.file.write(output_paths.file, output);
-    grunt.log.oklns("Database DUMP succesfully exported to: " + output_paths.file);
+    grunt.log.oklns(
+      "Database DUMP succesfully exported to: " + output_paths.file
+    );
   };
 
   exports.db_import = function(config, src) {
@@ -23,7 +25,13 @@ exports.init = function (grunt) {
   };
 
   exports.rsync_push = function(config) {
-    grunt.log.oklns("Syncing data from '" + config.from + "' to '" + config.to + "' with rsync.");
+    grunt.log.oklns(
+      "Syncing data from '" +
+        config.from +
+        "' to '" +
+        config.to +
+        "' with rsync."
+    );
 
     var cmd = exports.rsync_push_cmd(config);
     grunt.log.writeln(cmd);
@@ -34,28 +42,34 @@ exports.init = function (grunt) {
   };
 
   exports.rsync_pull = function(config) {
-    grunt.log.oklns("Syncing data from '" + config.from + "' to '" + config.to + "' with rsync.");
+    grunt.log.oklns(
+      "Syncing data from '" +
+        config.from +
+        "' to '" +
+        config.to +
+        "' with rsync."
+    );
 
     var cmd = exports.rsync_pull_cmd(config);
+    grunt.log.writeln(cmd);
     shell.exec(cmd);
 
     grunt.log.oklns("Sync completed successfully.");
   };
 
   exports.generate_backup_paths = function(target, task_options) {
-
-    var backups_dir = task_options['backups_dir'] || "backups";
+    var backups_dir = task_options["backups_dir"] || "backups";
 
     var directory = grunt.template.process(tpls.backup_path, {
       data: {
         backups_dir: backups_dir,
         env: target,
-        date: grunt.template.today('yyyymmdd'),
-        time: grunt.template.today('HH-MM-ss'),
+        date: grunt.template.today("yyyymmdd"),
+        time: grunt.template.today("HH-MM-ss")
       }
     });
 
-    var filepath = directory + '/db_backup.sql';
+    var filepath = directory + "/db_backup.sql";
 
     return {
       dir: directory,
@@ -64,16 +78,16 @@ exports.init = function (grunt) {
   };
 
   exports.compose_rsync_options = function(options) {
-    var args = options.join(' ');
+    var args = options.join(" ");
 
     return args;
   };
 
   exports.compose_rsync_exclusions = function(options) {
-    var exclusions = '';
+    var exclusions = "";
     var i = 0;
 
-    for(i = 0;i < options.length; i++) {
+    for (i = 0; i < options.length; i++) {
       exclusions += "--exclude '" + options[i] + "' ";
     }
 
@@ -83,7 +97,9 @@ exports.init = function (grunt) {
   };
 
   exports.db_adapt = function(old_url, new_url, file) {
-    grunt.log.oklns("Adapt the database: set the correct urls for the destination in the database.");
+    grunt.log.oklns(
+      "Adapt the database: set the correct urls for the destination in the database."
+    );
     var content = grunt.file.read(file);
 
     var output = exports.replace_urls(old_url, new_url, content);
@@ -100,13 +116,19 @@ exports.init = function (grunt) {
 
   exports.replace_urls_in_serialized = function(search, replace, string) {
     var length_delta = search.length - replace.length;
-    var search_regexp = new RegExp(search, 'g');
+    var search_regexp = new RegExp(search, "g");
 
     // Replace for serialized data
-    var matches, length, delimiter, old_serialized_data, target_string, new_url, occurences;
+    var matches,
+      length,
+      delimiter,
+      old_serialized_data,
+      target_string,
+      new_url,
+      occurences;
     var regexp = /s:(\d+):([\\]*['"])(.*?)\2;/g;
 
-    while (matches = regexp.exec(string)) {
+    while ((matches = regexp.exec(string))) {
       old_serialized_data = matches[0];
       target_string = matches[3];
 
@@ -121,7 +143,8 @@ exports.init = function (grunt) {
         length -= length_delta * occurences;
 
         // Compose the new serialized data
-        var new_serialized_data = 's:' + length + ':' + delimiter + new_url + delimiter + ';';
+        var new_serialized_data =
+          "s:" + length + ":" + delimiter + new_url + delimiter + ";";
 
         // Replace the new serialized data into the dump
         string = string.replace(old_serialized_data, new_serialized_data);
@@ -131,8 +154,8 @@ exports.init = function (grunt) {
     return string;
   };
 
-  exports.replace_urls_in_string = function (search, replace, string) {
-    var regexp = new RegExp('(?!' + replace + ')(' + search + ')', 'g');
+  exports.replace_urls_in_string = function(search, replace, string) {
+    var regexp = new RegExp("(?!" + replace + ")(" + search + ")", "g");
     return string.replace(regexp, replace);
   };
 
@@ -146,7 +169,7 @@ exports.init = function (grunt) {
         host: config.host
       }
     });
-    
+
     if (typeof config.container !== "undefined") {
       // docker exec wraps the command
       var tpl_docker = grunt.template.process(tpls.docker, {
@@ -155,10 +178,10 @@ exports.init = function (grunt) {
           option: config.container_options
         }
       });
-      cmd = tpl_docker + '\'' + cmd + '\'';
-      
+      cmd = tpl_docker + "'" + cmd + "'";
+
       // ssh wraps docker exec
-      if (typeof config.ssh_host !== 'undefined') {
+      if (typeof config.ssh_host !== "undefined") {
         var tpl_ssh = grunt.template.process(tpls.ssh, {
           data: {
             host: config.ssh_host,
@@ -166,18 +189,16 @@ exports.init = function (grunt) {
           }
         });
 
-        cmd = tpl_ssh + ' \'' + cmd.replace(/\'/g, '\'"\'"\'') + '\'';
+        cmd = tpl_ssh + " '" + cmd.replace(/\'/g, "'\"'\"'") + "'";
         grunt.log.oklns("Creating DUMP of remote database via docker");
-      }
-      else {
+      } else {
         grunt.log.oklns("Creating DUMP of local docker container");
       }
-      
     } else if (typeof config.ssh_host === "undefined") {
       // suppress the warnings
       // https://tickets.puppetlabs.com/browse/MODULES-2605
-      cmd = `MYSQL_PWD=${config.pass} `+cmd
-      cmd = cmd.replace(` -p${config.pass} `,' ');
+      cmd = `MYSQL_PWD=${config.pass} ` + cmd;
+      cmd = cmd.replace(` -p${config.pass} `, " ");
       grunt.log.oklns("Creating DUMP of local database");
     } else {
       grunt.log.oklns("Creating DUMP of remote database");
@@ -189,7 +210,7 @@ exports.init = function (grunt) {
       });
       cmd = tpl_ssh + " '" + cmd + "'";
     }
-    cmd = cmd.replace('  ',' ');
+    cmd = cmd.replace("  ", " ");
     return cmd;
   };
 
@@ -209,13 +230,13 @@ exports.init = function (grunt) {
       var tpl_docker = grunt.template.process(tpls.docker, {
         data: {
           container: config.container,
-          option: config.container_options || '-i'
+          option: config.container_options || "-i"
         }
       });
-      cmd = tpl_docker + '\'' + cmd + '\'';
-      
+      cmd = tpl_docker + "'" + cmd + "'";
+
       // ssh wraps docker exec
-      if (typeof config.ssh_host !== 'undefined') {
+      if (typeof config.ssh_host !== "undefined") {
         var tpl_ssh = grunt.template.process(tpls.ssh, {
           data: {
             host: config.ssh_host,
@@ -223,13 +244,11 @@ exports.init = function (grunt) {
           }
         });
 
-        cmd = tpl_ssh + ' \'' + cmd.replace(/\'/g, '\'"\'"\'') + '\' < ' + src;
+        cmd = tpl_ssh + " '" + cmd.replace(/\'/g, "'\"'\"'") + "' < " + src;
         grunt.log.oklns("Creating DUMP of remote database via docker");
-      }
-      else {
+      } else {
         grunt.log.oklns("Creating DUMP of local docker container");
       }
-      
     } else if (typeof config.ssh_host === "undefined") {
       grunt.log.oklns("Importing DUMP into local database");
       cmd = cmd + " < " + src;
@@ -245,7 +264,7 @@ exports.init = function (grunt) {
       cmd = tpl_ssh + " '" + cmd + "' < " + src;
     }
 
-    cmd = cmd.replace('  ',' ');
+    cmd = cmd.replace("  ", " ");
     return cmd;
   };
 
@@ -253,6 +272,7 @@ exports.init = function (grunt) {
     var cmd = grunt.template.process(tpls.rsync_push, {
       data: {
         rsync_args: config.rsync_args,
+        ssh_options: config.ssh_options,
         ssh_host: config.ssh_host,
         from: config.from,
         to: config.to,
@@ -267,6 +287,7 @@ exports.init = function (grunt) {
     var cmd = grunt.template.process(tpls.rsync_pull, {
       data: {
         rsync_args: config.rsync_args,
+        ssh_options: config.ssh_options,
         ssh_host: config.ssh_host,
         from: config.from,
         to: config.to,
@@ -279,15 +300,19 @@ exports.init = function (grunt) {
 
   var tpls = {
     backup_path: "<%= backups_dir %>/<%= env %>/<%= date %>/<%= time %>",
-    mysqldump: "mysqldump -h <%= host %> -u<%= user %> -p<%= pass %> <%= database %>",
+    mysqldump:
+      "mysqldump -h <%= host %> -u<%= user %> -p<%= pass %> <%= database %>",
     mysql: "mysql -h <%= host %> -u <%= user %> -p<%= pass %> <%= database %>",
-    rsync_push: "rsync <%= rsync_args %> --delete -e 'ssh <%= ssh_host %>' <%= exclusions %> <%= from %> :<%= to %>",
-    rsync_pull: "rsync <%= rsync_args %> -e 'ssh <%= ssh_host %>' <%= exclusions %> :<%= from %> <%= to %>",
+    rsync_push:
+      "rsync <%= rsync_args %> --delete -e 'ssh <%= ssh_options %> <%= ssh_host %>' <%= exclusions %> <%= from %> :<%= to %>",
+    rsync_pull:
+      "rsync <%= rsync_args %> -e 'ssh <%= ssh_options %> <%= ssh_host %>' <%= exclusions %> :<%= from %> <%= to %>",
     ssh: "ssh <%= options%> <%= host %>",
     docker: "docker exec <%= option %> <%= container %> bash -c ",
-    rsync_docker_push: "rsync <%= rsync_args %> --delete -e 'docker-machine ssh <%= docker_machine %>' --rsync-path='sudo rsync' <%= exclusions %> <%= from %> :<%= to %>",
+    rsync_docker_push:
+      "rsync <%= rsync_args %> --delete -e 'docker-machine ssh <%= docker_machine %>' --rsync-path='sudo rsync' <%= exclusions %> <%= from %> :<%= to %>",
     change_owner: "sudo chown -R www-data:www-data <%= path %> ",
-    docker_ssh: "docker-machine ssh <%= docker_machine %> " 
+    docker_ssh: "docker-machine ssh <%= docker_machine %> "
   };
 
   return exports;
